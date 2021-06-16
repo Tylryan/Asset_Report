@@ -1,0 +1,4 @@
+EMAIL='your.email@gmail.com'
+# This is obtained from crypto api
+# CRYPTO_API=''
+PASSWORD=''
