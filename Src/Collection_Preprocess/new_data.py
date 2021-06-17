@@ -186,15 +186,32 @@ class Data():
 
 
 if __name__ == "__main__":
-    df = Stock_Data(["AAPL", "GOOGL"])
-
-    ldf = df.get_long_period_raw_df()
-
     ################# STOCKS ###############################
-    ldf_close = pd.DataFrame(ldf.Close)
-    print(ldf_close)
-    cumulative_returns = Data.get_log_returns(ldf_close)
-    print(cumulative_returns)
+    # long_term_stock_data = Stock_Data(["AAPL", "GOOGL"])
+
+    # long_term_stock_data = long_term_stock_data.get_long_period_raw_df()
+    # ldf_close = pd.DataFrame(long_term_stock_data.Close)
+
+    ################ CRYPTO ###################################
+
+    import sys
+    sys.path.append("../")
+    print('\n\n\n\nCrypto Data')
+    # tickers = ["BTC", "ETH"]
+
+    end = datetime.date.today()
+    start = end - datetime.timedelta(days=505)
+
+    import read_config
+    env_location = '../../Data/.env'
+    user_name, password, crypto_api = read_config.export_variables(
+        env_location)
+    crypto_closing_df = Crypto_Data(
+        crypto_api)
+    crypto_df = crypto_closing_df.get_only_one_close_df("ETH")
+    print(crypto_df)
+
+    ################### OTHER ###################################
 
     # ldf["Cumulative Returns"] = Data.get_log_returns(ldf.Close)
 
@@ -204,15 +221,3 @@ if __name__ == "__main__":
     # ldf["Cum"] = Data.simple_returns_to_cumulative_returns(
     #     ldf["Simple"]) * 1000
     # print(ldf)
-
-    ################ CRYPTO ###################################
-    # sys.path.append("../")
-    # import read_config
-    # env_location = '../../'
-    # user_name, password, crypto_api = read_config.export_variables(
-    #     env_location)
-    # tickers = ["BTC", "ETH"]
-
-    # print(user_name)
-    # crypto_data = Crypto_Data(crypto_api).get_multiple_close_df(tickers, 2)
-    # print(crypto_data)

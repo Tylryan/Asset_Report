@@ -12,6 +12,7 @@ import datetime
 from pprint import pprint
 from statsmodels.tsa.arima_model import ARIMA
 import warnings
+from time import sleep
 import sys
 sys.path.append("../../Src/")
 
@@ -192,7 +193,7 @@ class arima_predictions():
         test_predictions = model.test_model()
         return test_predictions
 
-    def run_multiple_tests(self, closing_df):
+    def run_multiple_tests(self, closing_df, crypto_api, asset="stock"):
         """
         Takes in a dataframe containing the closing prices of more than on stock
         Returns the same dataframe with predictions appended to each column.
@@ -205,25 +206,41 @@ class arima_predictions():
         model.train_model()
         # 3. Return the predictions
         test_predictions = model.test_model()
+        tickers = closing_df.columns
+        if asset.lower() == "stock":
+            # We are going to do the same with the rest of the dataframe.
+            # We are going to append the others to the test_predictions dataframe
+            for ticker in tickers[1:]:
+                # Reinitialize the Stock_data class.
+                # Harder to override the original. Easier to just do this.
+                stock_df = Stock_Data(ticker)
 
-        # We are going to do the same with the rest of the dataframe.
-        # We are going to append the others to the test_predictions dataframe
-        for ticker in tickers[1:]:
-            # Reinitialize the Stock_data class.
-            # Harder to override the original. Easier to just do this.
-            stock_df = Stock_Data(ticker)
+                # Get a long period of only close information
+                close_df = pd.DataFrame(
+                    stock_df.get_long_period_raw_df().Close)
 
-            # Get a long period of only close information
-            close_df = pd.DataFrame(stock_df.get_long_period_raw_df().Close)
+                # Also need to reinstantiate the arima model
+                model = arima()
+                model.get_optimal_order(close_df)
+                model.train_model()
+                test_prediction = model.test_model()
+                print(model.train_rmse)
+                test_predictions[ticker] = test_prediction.iloc[:, 0]
+                print("\n\nWAITING...")
+                sleep(5)
 
-            # Also need to reinstantiate the arima model
-            model = arima()
-            model.get_optimal_order(close_df)
-            model.train_model()
-            test_prediction = model.test_model()
-            print(model.train_rmse)
-            test_predictions[ticker] = test_prediction.iloc[:, 0]
-        return test_predictions
+            return test_predictions
+        elif asset.lower() == "crypto":
+            for ticker in tickers[1:]:
+                crypto_closing_df = Crypto_Data(
+                    crypto_api).get_only_one_close_df(ticker)
+                print(crypto_closing_df)
+                sleep(15)
+
+                crypto_predictions = arima_predictions()
+                crypto_predictions = crypto_predictions.run_multiple_tests(
+                    crypto_closing_df)
+                return crypto_predictions
 
 
 if __name__ == '__main__':
@@ -235,34 +252,45 @@ if __name__ == '__main__':
 ##################### WORKING STOCK EXAMPLE ##################################
     # Use this in main.py
 
-    tickers = ["AAPL", "GOOGL", "AMZN"]
+#     tickers = ["AAPL", "GOOGL", "AMZN"]
 
-    # Get in all the stock data
-    stocks_df = pd.DataFrame(Stock_Data(
-        tickers).get_long_period_raw_df().Close)
-    print("STOCK DATA GOING IN")
-    print(stocks_df)
+#     # Get in all the stock data
+#     stocks_df = pd.DataFrame(Stock_Data(
+#         tickers).get_long_period_raw_df().Close)
+#     print("STOCK DATA GOING IN")
+#     print(stocks_df)
 
-    stock_predictions = arima_predictions()
-    stock_predictions = stock_predictions.run_multiple_tests(stocks_df)
-    print("STOCK DATA COMING OUT")
-    print(stock_predictions)
+#     stock_predictions = arima_predictions()
+#     stock_predictions = stock_predictions.run_multiple_tests(stocks_df)
+#     print("STOCK DATA COMING OUT")
+#     print(stock_predictions)
 
 
 ##################### Crypto EXAMPLE ###################################
 
-    # print('\n\n\n\nCrypto Data')
-    # tickers = ["BTC", "ETH"]
+    print('\n\n\n\nCrypto Data')
+    tickers = ["BTC", "ETH"]
 
-    # end = datetime.date.today()
-    # start = end - datetime.timedelta(days=505)
+    end = datetime.date.today()
+    start = end - datetime.timedelta(days=505)
 
-    # import read_config
-    # env_location = '../../Data/.env'
-    # user_name, password, crypto_api = read_config.export_variables(
-    #     env_location)
-    # crypto_data_df = Crypto_Data(crypto_api)
-    # crypto_data_df = crypto_data_df.get_multiple_close_df(tickers)
-    # print(crypto_data_df)
+    import read_config
+    env_location = '../../Data/.env'
+    user_name, password, crypto_api = read_config.export_variables(
+        env_location)
 
-    # arima_prediction(crypto_df)
+    # Getting a dataframe with 2 closing columns
+    crypto_closing_df = Crypto_Data(
+        crypto_api).get_multiple_close_df(tickers, 2)
+    print(crypto_closing_df)
+    sleep(10)
+
+    # Instantiating the arima model
+    crypto_predictions = arima_predictions()
+    # Running the model on 2 columns
+    crypto_predictions = crypto_predictions.run_multiple_tests(
+        crypto_closing_df,
+        crypto_api,
+        asset="crypto"
+    )
+    print(crypto_predictions)
