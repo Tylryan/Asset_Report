@@ -186,17 +186,15 @@ class Data():
 
 
 if __name__ == "__main__":
-    import sys
-    # sys.path.append('../')
-    # df = Stock_Data(["AAPL", "GOOGL"])
+    df = Stock_Data(["AAPL", "GOOGL"])
 
-    # ldf = df.get_long_period_raw_df()
+    ldf = df.get_long_period_raw_df()
 
     ################# STOCKS ###############################
-    # ldf_close = pd.DataFrame(ldf.Close)
-    # print(ldf_close)
-    # cumulative_returns = Data.get_percent_cumulative_returns(only_close)
-    # print(cumulative_returns)
+    ldf_close = pd.DataFrame(ldf.Close)
+    print(ldf_close)
+    cumulative_returns = Data.get_log_returns(ldf_close)
+    print(cumulative_returns)
 
     # ldf["Cumulative Returns"] = Data.get_log_returns(ldf.Close)
 
