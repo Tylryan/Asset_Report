@@ -78,9 +78,9 @@ class Crypto_Data():
         # Changing the column name to 'Date' for easier use
         df['Date'] = df['time_close']
         # Renaming the rate_close column to 'Close'
-        df['Close'] = df['rate_close']
+        df[f'{ticker[0]}'] = df['rate_close']
         # Only Retrieve the Date and Close Columns
-        df = df[['Date', 'Close']]
+        df = df[['Date', f'{ticker[0]}']]
         # Only Show Year Month Day
         df['Date'] = pd.to_datetime(df['Date'].str[:10])
         df.set_index('Date', inplace=True)
@@ -94,6 +94,7 @@ class Crypto_Data():
             ticker=tickers[0],
             years=years
         )
+        main_crypto_df.columns = [f"{tickers[0]}"]
         # TODO Rename "CLOSE" column to "BTC"
         # Do the same for the rest.
         # This will make it more like the Stock Data
@@ -106,28 +107,28 @@ class Crypto_Data():
             new_crypto_df = Crypto_Data(
                 self.api_key).get_only_one_close_df(ticker)
 
-            main_crypto_df[f"{ticker} Close"] = new_crypto_df
+            main_crypto_df[ticker] = new_crypto_df
 
         return main_crypto_df
 
-    # TODO GET CURRENT CRYPTO PRICE
-    # You want the price at least within the last 5 minutes.
-    # You will have to read a bunch of documentation.
-    def get_current_crypto_price(
-            self,
-            ticker: str,
-            interval: str = '5MIN'
-    ):
-        end = datetime.date.today()
-        start = end - datetime.timedelta(1)
+        # TODO GET CURRENT CRYPTO PRICE
+        # You want the price at least within the last 5 minutes.
+        # You will have to read a bunch of documentation.
+        def get_current_crypto_price(
+                self,
+                ticker: str,
+                interval: str = '5MIN'
+        ):
+            end = datetime.date.today()
+            start = end - datetime.timedelta(1)
 
-        # Date range of the request
-        limit = 1
-    # TODO Figure out this part to get the current price.
-    # TODO Break this url up into variables that are more readable.
-    # E.g.
-    # base = 'https://rest.coinapi.io/v1/'
-    # daily_prices = 'sa;lfdkj;asldfkjas;ldfkj'
+            # Date range of the request
+            limit = 1
+        # TODO Figure out this part to get the current price.
+        # TODO Break this url up into variables that are more readable.
+        # E.g.
+        # base = 'https://rest.coinapi.io/v1/'
+        # daily_prices = 'sa;lfdkj;asldfkjas;ldfkj'
 
         url = f'https://rest.coinapi.io/v1/exchangerate/{ticker}/USD/history?period_id={interval}&time_start={start}&time_end={end}&limit={limit}'
         # Authenticating the request
@@ -187,37 +188,46 @@ class Data():
 
 if __name__ == "__main__":
     ################# STOCKS ###############################
-    # long_term_stock_data = Stock_Data(["AAPL", "GOOGL"])
+    # Initialize the class with ticker
+    long_term_stock_data = Stock_Data(["GME", "TSLA"])
 
-    # long_term_stock_data = long_term_stock_data.get_long_period_raw_df()
-    # ldf_close = pd.DataFrame(long_term_stock_data.Close)
+    # Get Historical prices
+    long_term_stock_data = long_term_stock_data.get_long_period_raw_df()
+    # Only get the closing prices.
+    ldf_close = pd.DataFrame(long_term_stock_data.Close)
 
     ################ CRYPTO ###################################
 
     import sys
     sys.path.append("../")
     print('\n\n\n\nCrypto Data')
-    # tickers = ["BTC", "ETH"]
+    tickers = ["BTC", "ETH"]
 
-    end = datetime.date.today()
-    start = end - datetime.timedelta(days=505)
+    # end = datetime.date.today()
+    # start = end - datetime.timedelta(days=505)
 
     import read_config
     env_location = '../../Data/.env'
     user_name, password, crypto_api = read_config.export_variables(
         env_location)
+
+    # Instantiate the Crypto Data Class
     crypto_closing_df = Crypto_Data(
         crypto_api)
-    crypto_df = crypto_closing_df.get_only_one_close_df("ETH")
+
+    crypto_df = crypto_closing_df.get_multiple_close_df(tickers)
+
+    # PRODUCES THE EXACT SAME FORMAT FOR BOTH CRYPTO AND STOCK
+    print(ldf_close)
     print(crypto_df)
 
-    ################### OTHER ###################################
+    # ################### OTHER ###################################
 
-    # ldf["Cumulative Returns"] = Data.get_log_returns(ldf.Close)
+    # # ldf["Cumulative Returns"] = Data.get_log_returns(ldf.Close)
 
-    # ldf["Cumulative Dollar Returns"] = Data.get_dollar_cumulative_returns(
-    #     ldf["Cumulative Returns"])
-    # ldf["Simple"] = ldf.Close.pct_change()
-    # ldf["Cum"] = Data.simple_returns_to_cumulative_returns(
-    #     ldf["Simple"]) * 1000
-    # print(ldf)
+    # # ldf["Cumulative Dollar Returns"] = Data.get_dollar_cumulative_returns(
+    # #     ldf["Cumulative Returns"])
+    # # ldf["Simple"] = ldf.Close.pct_change()
+    # # ldf["Cum"] = Data.simple_returns_to_cumulative_returns(
+    # #     ldf["Simple"]) * 1000
+    # # print(ldf)
