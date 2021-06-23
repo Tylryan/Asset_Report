@@ -17,6 +17,7 @@ def main():
     ####################### CUSTOM IMPORTS #####################################
     from Collection_Preprocess.new_data import Stock_Data, Crypto_Data
     from Models import arima_test
+    from Analysis import default_analysis
     import read_config
 
     ###################### Customizable Variables ##############################
@@ -33,7 +34,7 @@ def main():
 
     stocks_df = pd.DataFrame(Stock_Data(
         stock_tickers).get_long_period_raw_df().Close)
-
+    crypto_go_ahead = True
     # Getting a dataframe with 2 closing columns
     # Note: the 2 paramater means years of data to collect.
     try:
@@ -62,18 +63,25 @@ def main():
     stock_predictions.to_csv("Src/stock_predictions.csv")
 
     # If the user hasn't exhausted their api calls ...
-    if crypto_go_ahead:
+    if crypto_go_ahead == True:
         # Instantiating the arima model
         crypto_predictions = arima_test.arima_predictions()
         # Running the model on 2 columns
-        crypto_predictions = crypto_predictions.run_multiple_tests(crypto_closing_df,
-                                                                   crypto_api,
-                                                                   )
-        crypto_predictions.to_csv("Src/crypto_predictions.csv")
-        print(crypto_predictions)
-    print(stock_predictions)
+        crypto_predictions = crypto_predictions.run_multiple_tests(
+            crypto_closing_df)
+    else:
+        pass
     #################### Basic Analysis ######################################
 
+    stock_analysis = default_analysis.Analysis(stock_predictions)
+    default_stock_analysis = stock_analysis.default_analysis()
+
+    crypto_analysis = default_analysis.Analysis(crypto_predictions)
+    default_crypto_analysis = crypto_analysis.default_analysis()
+
+    print("\n\nSTOCK ANALYSIS\n\n")
+    print(default_stock_analysis)
+    print(default_crypto_analysis)
     # SENDING THE ACTUAL EMAIL
     # send_email(email, password)
 
