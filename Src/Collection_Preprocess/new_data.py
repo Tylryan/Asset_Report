@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,7 +6,6 @@ from time import sleep
 import numpy as np
 import json
 import datetime
-
 import requests
 
 
@@ -186,48 +184,53 @@ class Data():
         return df1
 
 
+
 if __name__ == "__main__":
-    ################# STOCKS ###############################
-    # Initialize the class with ticker
-    long_term_stock_data = Stock_Data(["GME", "TSLA"])
+    def test_new_data():
+        ################# STOCKS ###############################
+        # Initialize the class with ticker
 
-    # Get Historical prices
-    long_term_stock_data = long_term_stock_data.get_long_period_raw_df()
-    # Only get the closing prices.
-    ldf_close = pd.DataFrame(long_term_stock_data.Close)
+        long_term_stock_data = Stock_Data(["GME", "TSLA"])
 
-    ################ CRYPTO ###################################
+        # Get Historical prices
+        long_term_stock_data = long_term_stock_data.get_long_period_raw_df()
+        # Only get the closing prices.
+        ldf_close = pd.DataFrame(long_term_stock_data.Close)
 
-    import sys
-    sys.path.append("../")
-    print('\n\n\n\nCrypto Data')
-    tickers = ["BTC", "ETH"]
+        ################ CRYPTO ###################################
 
-    # end = datetime.date.today()
-    # start = end - datetime.timedelta(days=505)
+        import sys
+        sys.path.append("../")
+        print('\n\n\n\nCrypto Data')
+        tickers = ["BTC", "ETH"]
 
-    import read_config
-    env_location = '../../Data/.env'
-    user_name, password, crypto_api = read_config.export_variables(
-        env_location)
+        # end = datetime.date.today()
+        # start = end - datetime.timedelta(days=505)
 
-    # Instantiate the Crypto Data Class
-    crypto_closing_df = Crypto_Data(
-        crypto_api)
+        import read_config
+        env_location = '../../Data/.env'
+        user_name, password, crypto_api = read_config.export_variables(
+            env_location)
 
-    crypto_df = crypto_closing_df.get_multiple_close_df(tickers)
+        # Instantiate the Crypto Data Class
+        crypto_closing_df = Crypto_Data(
+            crypto_api)
 
-    # PRODUCES THE EXACT SAME FORMAT FOR BOTH CRYPTO AND STOCK
-    print(ldf_close)
-    print(crypto_df)
+        crypto_df = crypto_closing_df.get_multiple_close_df(tickers)
 
-    # ################### OTHER ###################################
+        # PRODUCES THE EXACT SAME FORMAT FOR BOTH CRYPTO AND STOCK
+        print(ldf_close)
+        print(crypto_df)
 
-    # # ldf["Cumulative Returns"] = Data.get_log_returns(ldf.Close)
+        # ################### OTHER ###################################
 
-    # # ldf["Cumulative Dollar Returns"] = Data.get_dollar_cumulative_returns(
-    # #     ldf["Cumulative Returns"])
-    # # ldf["Simple"] = ldf.Close.pct_change()
-    # # ldf["Cum"] = Data.simple_returns_to_cumulative_returns(
-    # #     ldf["Simple"]) * 1000
-    # # print(ldf)
+        # # ldf["Cumulative Returns"] = Data.get_log_returns(ldf.Close)
+
+        # # ldf["Cumulative Dollar Returns"] = Data.get_dollar_cumulative_returns(
+        # #     ldf["Cumulative Returns"])
+        # # ldf["Simple"] = ldf.Close.pct_change()
+        # # ldf["Cum"] = Data.simple_returns_to_cumulative_returns(
+        # #     ldf["Simple"]) * 1000
+        # # print(ldf)
+
+    test_new_data()

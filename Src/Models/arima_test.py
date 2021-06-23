@@ -208,18 +208,24 @@ class arima_predictions():
         test_predictions = pd.DataFrame(model.test_model())
         # We are going to do the same with the rest of the dataframe.
         # We are going to append the others to the test_predictions dataframe
-        for ticker in closing_df:
+        try:
+            for ticker in closing_df:
 
-            # Find the historical prices of the current ticker.
-            price_history = closing_df[ticker].to_frame()
+                # Find the historical prices of the current ticker.
+                price_history = closing_df[ticker].to_frame()
 
-            # Run the model on it
-            model = arima()
-            model.get_optimal_order(price_history)
-            model.train_model()
-            test_prediction = pd.DataFrame(model.test_model())
-            # Concat this predicted price column to the dataframe above.
-            test_predictions[ticker] = test_prediction[ticker]
+                # Run the model on it
+                model = arima()
+                model.get_optimal_order(price_history)
+                model.train_model()
+                test_prediction = pd.DataFrame(model.test_model())
+                # Concat this predicted price column to the dataframe above.
+                test_predictions[ticker] = test_prediction[ticker]
+        except Exception as e:
+            print(
+                f"\n\nREGRESSION FAILED FOR {ticker}\n\n",
+                e, "\n",
+                "\nContinuing With Other Stocks ...\n\n")
 
         return test_predictions
 

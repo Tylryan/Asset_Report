@@ -16,105 +16,134 @@ class Analysis():
 
     def default_analysis(self, sensitivity: float = 0.025):
         """
-        Takes in a column of predicted prices and returns their moving averages.
+        Takes in a column of predicted prices and returns a new dataframe containing all tickers that are near or below their moving average in order of closeness.
         """
 
-        # Finding the moving averages
-        # long_close_df.reset_index(inplace=True)
-        # long_close_df['Date'] = long_close_df['Date'].apply(
-        #     lambda x: str(x)[:10])
-        # long_close_df.set_index('Date', inplace=True)
+        # Create an empty list instead of dataframe because pandas doesn't seem to work.
+        buy_df = []
 
-        # Setting up the new dataframe.
+        do_not_buy_df = []
+        # For ticker in dataframe
 
-        analysis_df = pd.DataFrame()
-        analysis_df[self.tickers[0]] = self.predictions_df.iloc[:, 0]
-        analysis_df[f'{self.tickers[0]} 50ma'] = self.predictions_df.iloc[:, 0].rolling(
-            window=50).mean()
-        analysis_df[f'{self.tickers[0]} 100ma'] = self.predictions_df.iloc[:, 0].rolling(
-            window=100).mean()
+        for ticker in self.predictions_df:
+            buy_df = pd.DataFrame()
+        #     # Create the moving averages
+            predicted_ma_100 = self.predictions_df[ticker].rolling(
+                window=100).mean()[-1]
+            predicted_ma_250 = self.predictions_df[ticker].rolling(
+                window=250).mean()[-1]
+            predicted_price = self.predictions_df[ticker][-1]
 
-        for ticker in predicted_df[1:]:
-            analysis_df[ticker] = self.predictions_df[ticker]
-            analysis_df[f'{ticker} 50ma'] = self.predictions_df[ticker].rolling(
-                window=50).mean()
-            analysis_df[f'{ticker} 100ma'] = self.predictions_df[ticker].rolling(
-                window=100).mean()
+            current_ma_100 = self.predictions_df[ticker].rolling(
+                window=100).mean()[-5]
+            current_ma_250 = self.predictions_df[ticker].rolling(
+                window=250).mean()[-5]
+            current_price = self.predictions_df[ticker][-5]
 
-        # # If the current price is near either, email me.
-        # current_50_ma = long_close_df['50ma'].tail(1).values
-        # current_100_ma = long_close_df['100ma'].tail(1).values
+        #     # If any of these conditions are true, then we append the ticker and its info to the buy dataframe.
+            buy_condition = [
+                # Predicted price is less than the predicted 100 day ma
+                (predicted_price < predicted_ma_100) |
+                # Predicted price is less than the predicted 100 day ma * 2%
+                (predicted_price < (predicted_ma_100 * 1.02)) |
+                # Predicted price is less than the predicted 250
+                (predicted_price < predicted_ma_250) |
 
-        # # Current price
-        # current_price = current_price_close_df.Close.values
-        # # Conditions to be met
-        # conditions = [
-        #     # If the current price is plus or minus 5% of the 50 day moving average.
-        #     (current_price <= current_50_ma *
-        #      1.05) & (current_price > current_50_ma * 0.95),
-        #     # If the current price is plus or minus 5% of the 200 day moving average.
-        #     (current_price <= current_100_ma *
-        #      1.05) & (current_price > current_100_ma * 0.95),
-        # ]
-        return analysis_df
+                (current_price < current_ma_100) |
+                (current_price < (current_ma_100 * 1.02)) |
+                (current_price < current_ma_250)
+            ]
 
-    # Eg of Super
-    # self.analysis_df would be used here instead of regular self.
-    # Really, the only needed graphs are the absolutely best oportunities.
-    def plot_dataframe(self):
-        start = str(df.index[-200])[:10]
-        end = str(df.index[-6])[:10]
+            # For some reason I can't just say "if buy_condition"
+            if buy_condition == True:
+                buy_opportunity = {
+                    "Ticker": ticker,
+                    "Current Price": current_price,
+                    "Current 100": current_ma_100,
+                    "Current 250": current_ma_250,
+                    "Predicted Price": predicted_price,
+                    "Predicted 100": predicted_ma_100,
+                    "Predicted 250": predicted_ma_250
+                }
+                buy_df.append(buy_opportunity)
 
-        actual_close = df['Close'][-200:-4]
-        actual_50 = df['50ma'][-200:-4]
-        actual_100 = df['100ma'][-200:-4]
+            else:
+                no_opportunity = {
+                    "Ticker": ticker,
+                    "Current Price": current_price,
+                    "Current 100": current_ma_100,
+                    "Current 250": current_ma_250,
+                    "Predicted Price": predicted_price,
+                    "Predicted 100": predicted_ma_100,
+                    "Predicted 250": predicted_ma_250
+                }
+                do_not_buy_df.append(no_opportunity)
+        analysis_df = pd.DataFrame(do_not_buy_df).set_index("Ticker")
 
-        predicted_close = df['Close'][-5:]
-        predicted_50 = df['50ma'][-5:]
-        predicted_100 = df['100ma'][-5:]
+        #     # Finding how far price is from the ma
+        analysis_df["Actual Closeness"] = analysis_df["Current Price"] / \
+            analysis_df["Current 250"] - 1
+        analysis_df["Predicted Closeness"] = analysis_df["Predicted Price"] / - \
+            analysis_df["Predicted 250"] - 1
 
-        actual_close.plot(
-            title=f"{ticker} from {start} to {end} + 5",
-            c="b",
-            legend=True,
-            grid=True
-        )
-        actual_50.plot(c="yellow", legend=True)
-        actual_100.plot(c="orange", legend=True)
+        analysis_df.sort_values(
+            by=["Actual Closeness"],
+            inplace=True)
+        return analysis_df.round(2)
+    # def plot_dataframe(self):
+    #     start = str(df.index[-200])[:10]
+    #     end = str(df.index[-6])[:10]
 
-        predicted_close.plot(c="red", legend=True)
-        predicted_50.plot(c="green", legend=True)
-        predicted_100.plot(c="black", legend=True)
-        # plt.show()
-        plt.savefig("./Functions/Email/stock_image1.png",
-                    orientation="landscape")
+    #     actual_close = df['Close'][-200:-4]
+    #     actual_50 = df['50ma'][-200:-4]
+    #     actual_100 = df['100ma'][-200:-4]
 
-    def plot_dataframe_zoomed(self):
-        start = str(df.index[-50])[:10]
-        end = str(df.index[-6])[:10]
-        actual_close = df['Close'][-50:-4]
-        actual_50 = df['50ma'][-50:-4]
-        actual_100 = df['100ma'][-50:-4]
+    #     predicted_close = df['Close'][-5:]
+    #     predicted_50 = df['50ma'][-5:]
+    #     predicted_100 = df['100ma'][-5:]
 
-        predicted_close = df['Close'][-5:]
-        predicted_50 = df['50ma'][-5:]
-        predicted_100 = df['100ma'][-5:]
+    #     actual_close.plot(
+    #         title=f"{ticker} from {start} to {end} + 5",
+    #         c="b",
+    #         legend=True,
+    #         grid=True
+    #     )
+    #     actual_50.plot(c="yellow", legend=True)
+    #     actual_100.plot(c="orange", legend=True)
 
-        actual_close.plot(
-            title=f"{ticker} from {start} to {end} + 5",
-            c="b",
-            legend=True,
-            grid=True
-        )
-        actual_50.plot(c="yellow", legend=True)
-        actual_100.plot(c="orange", legend=True)
+    #     predicted_close.plot(c="red", legend=True)
+    #     predicted_50.plot(c="green", legend=True)
+    #     predicted_100.plot(c="black", legend=True)
+    #     # plt.show()
+    #     plt.savefig("./Functions/Email/stock_image1.png",
+    #                 orientation="landscape")
 
-        predicted_close.plot(c="red", legend=True)
-        predicted_50.plot(c="green", legend=True)
-        predicted_100.plot(c="black", legend=True)
-        # plt.show()
-        plt.savefig("./Functions/Email/stock_image2.png",
-                    orientation="landscape")
+    # def plot_dataframe_zoomed(self):
+    #     start = str(df.index[-50])[:10]
+    #     end = str(df.index[-6])[:10]
+    #     actual_close = df['Close'][-50:-4]
+    #     actual_50 = df['50ma'][-50:-4]
+    #     actual_100 = df['100ma'][-50:-4]
+
+    #     predicted_close = df['Close'][-5:]
+    #     predicted_50 = df['50ma'][-5:]
+    #     predicted_100 = df['100ma'][-5:]
+
+    #     actual_close.plot(
+    #         title=f"{ticker} from {start} to {end} + 5",
+    #         c="b",
+    #         legend=True,
+    #         grid=True
+    #     )
+    #     actual_50.plot(c="yellow", legend=True)
+    #     actual_100.plot(c="orange", legend=True)
+
+    #     predicted_close.plot(c="red", legend=True)
+    #     predicted_50.plot(c="green", legend=True)
+    #     predicted_100.plot(c="black", legend=True)
+    #     # plt.show()
+    #     plt.savefig("./Functions/Email/stock_image2.png",
+    #                 orientation="landscape")
 
 
 if __name__ == "__main__":
@@ -123,27 +152,26 @@ if __name__ == "__main__":
     from Models import arima_test
     from Collection_Preprocess.new_data import Stock_Data, Crypto_Data
 
-    # ticker = ["AAPL", "GOOGL"]
-    # stocks = Stock_Data(ticker)
-    # long_df = stocks.get_long_period_raw_df(period="2y")
+    ticker = ["LOW", "AMZN"]
+    stocks = Stock_Data(ticker)
+    long_df = pd.DataFrame(stocks.get_long_period_raw_df(period="2y").Close)
 
-    # stock_predictions = arima_test.arima_predictions()
-    # stock_predictions = stock_predictions.run_multiple_tests(stocks)
+    stock_predictions = arima_test.arima_predictions()
+    stock_predictions = stock_predictions.run_multiple_tests(long_df)
 
-    # current_price_df = stocks.current_close_price()
-
-    # stock_analysis = Analysis(stocks)
-
-    predicted_df = pd.read_csv(
-        "../stock_predictions.csv",
-        index_col="Date",
-        parse_dates=True
-    )
-    print(predicted_df)
-
-    analysis_df = Analysis(predicted_df)
-    default_analysis = analysis_df.default_analysis()
+    stock_analysis = Analysis(stock_predictions)
+    default_analysis = stock_analysis.default_analysis()
     print(default_analysis)
+
+    # predicted_df = pd.read_csv(
+    #     "../stock_predictions.csv",
+    #     index_col="Date",
+    #     parse_dates=True
+    # )
+    # print(predicted_df)
+
+    # analysis_df = Analysis(predicted_df)
+    # default_analysis = analysis_df.default_analysis()
 
     # df = default_analysis(
     #     long_df,
