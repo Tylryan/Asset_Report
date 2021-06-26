@@ -78,18 +78,34 @@ class Analysis():
                     "Predicted 250": predicted_ma_250
                 }
                 do_not_buy_df.append(no_opportunity)
-        analysis_df = pd.DataFrame(do_not_buy_df).set_index("Ticker")
+        do_not_buy_df = pd.DataFrame(do_not_buy_df)
+        buy_df = pd.DataFrame(buy_df)
 
-        #     # Finding how far price is from the ma
-        analysis_df["Actual Closeness"] = analysis_df["Current Price"] / \
-            analysis_df["Current 250"] - 1
-        analysis_df["Predicted Closeness"] = analysis_df["Predicted Price"] / - \
-            analysis_df["Predicted 250"] - 1
+        # This will return two values if possible.
+        # If it is not possible, it will only return one.
+        try:
+            buy_email_df = self.closeness_caluclator(buy_df)
+            do_not_buy_email_df = self.closeness_caluclator(do_not_buy_df)
+            return do_not_buy_email_df.set_index("Ticker"), buy_email_df.set_index("Ticker")
 
-        analysis_df.sort_values(
+        except KeyError as e:
+            print(e)
+            do_not_buy_email_df = self.closeness_caluclator(do_not_buy_df)
+            return do_not_buy_email_df.set_index("Ticker")
+
+    def closeness_caluclator(self, df):
+        # Finding how far price is from the ma
+        df["Actual Closeness"] = df["Current Price"] / \
+            df["Current 250"] - 1
+        df["Predicted Closeness"] = df["Predicted Price"] / \
+            df["Predicted 250"] - 1
+
+        df.sort_values(
             by=["Actual Closeness"],
             inplace=True)
-        return analysis_df.round(2)
+        return df.round(2)
+
+########################## POSSIBLE FUTURE ADDITION ##########################
     # def plot_dataframe(self):
     #     start = str(df.index[-200])[:10]
     #     end = str(df.index[-6])[:10]
@@ -160,8 +176,13 @@ if __name__ == "__main__":
     stock_predictions = stock_predictions.run_multiple_tests(long_df)
 
     stock_analysis = Analysis(stock_predictions)
-    default_analysis = stock_analysis.default_analysis()
-    print(default_analysis)
+
+    try:
+        do_not_buy_df, buy_df = stock_analysis.default_analysis()
+    except Exception as e:
+        print(e)
+        do_not_buy_df = stock_analysis.default_analysis()
+    print(do_not_buy_df)
 
     # predicted_df = pd.read_csv(
     #     "../stock_predictions.csv",

@@ -19,6 +19,7 @@ def export_variables(env_location='../Data/.env'):
 
 
 if __name__ == "__main__":
-    user, passwd = export_variables()
+    user, passwd, crypto_api = export_variables()
     print(f"User: {user}")
     print(f"Password: {passwd}")
+    print(f"Password: {crypto_api}")

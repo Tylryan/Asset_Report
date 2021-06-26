@@ -7,7 +7,7 @@ from email.mime.multipart import MIMEMultipart
 
 username = 'tlrrn5@gmail.com'
 
-password = 'qtlcaehqfzdxxrln'
+password = 'nunya'
 
 
 def send_mail(
