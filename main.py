@@ -14,7 +14,7 @@ class AssetReport():
     sys.path.append(
         './Src/')
     ####################### CUSTOM IMPORTS #####################################
-    from Collection_Preprocess.new_data import Stock_Data, Crypto_Data
+    from Collection_Preprocess.new_data import Stock_Data, Crypto_Data, Data
     from Models import arima_test
     from Analysis import default_analysis
     from Email.email_user import Email
@@ -23,8 +23,9 @@ class AssetReport():
     def user_data(self):
         ###################### Customizable Variables ##############################
         # Tickers to watch
-        self.stock_tickers = ["AMD", "AAPL"]
-        self.crypto_tickers = ["BTC", "ETH"]
+        stocks_crypto_file_location = "Data/assets.csv"
+        self.stock_tickers, self.crypto_tickers = Data.read_from_file(
+            stocks_crypto_file_location)
 
         # Can be changed to a more desired location
         self.env_location = 'Data/.env'
@@ -115,7 +116,7 @@ class AssetReport():
 
 if __name__ == "__main__":
     import sys
-    from Collection_Preprocess.new_data import Stock_Data, Crypto_Data
+    from Collection_Preprocess.new_data import Stock_Data, Crypto_Data, Data
     from Models import arima_test
     from Analysis import default_analysis
     from Email.email_user import Email

@@ -156,8 +156,19 @@ class Data():
     # Extra Useful Functions
 
     @staticmethod
+    def read_from_file(file):
+        """
+        Reads Stock and crypto tickers from a file and returns them as a list.
+        """
+        file = pd.read_csv(file)
+        stocks = list(file.Stocks)
+        crypto = list(file.Cryptos)
+        return stocks, crypto
+
+    @staticmethod
     def get_log_returns(df):
-        """ Return Cumulative return in percent form.
+        """ 
+        Return Cumulative return in percent form.
         Requires a single column of a dataframe to be passed
         """
         df1 = df.copy()
@@ -184,43 +195,45 @@ class Data():
         return df1
 
 
-
 if __name__ == "__main__":
     def test_new_data():
+        stocks, cryptos = Stock_Data.read_from_file('../../Data/assets.csv')
+        print(stocks)
+        print(cryptos)
         ################# STOCKS ###############################
         # Initialize the class with ticker
 
-        long_term_stock_data = Stock_Data(["GME", "TSLA"])
+        # long_term_stock_data = Stock_Data(["GME", "TSLA"])
 
-        # Get Historical prices
-        long_term_stock_data = long_term_stock_data.get_long_period_raw_df()
-        # Only get the closing prices.
-        ldf_close = pd.DataFrame(long_term_stock_data.Close)
+        # # Get Historical prices
+        # long_term_stock_data = long_term_stock_data.get_long_period_raw_df()
+        # # Only get the closing prices.
+        # ldf_close = pd.DataFrame(long_term_stock_data.Close)
 
-        ################ CRYPTO ###################################
+        # ################ CRYPTO ###################################
 
-        import sys
-        sys.path.append("../")
-        print('\n\n\n\nCrypto Data')
-        tickers = ["BTC", "ETH"]
+        # import sys
+        # sys.path.append("../")
+        # print('\n\n\n\nCrypto Data')
+        # tickers = ["BTC", "ETH"]
 
-        # end = datetime.date.today()
-        # start = end - datetime.timedelta(days=505)
+        # # end = datetime.date.today()
+        # # start = end - datetime.timedelta(days=505)
 
-        import read_config
-        env_location = '../../Data/.env'
-        user_name, password, crypto_api = read_config.export_variables(
-            env_location)
+        # import read_config
+        # env_location = '../../Data/.env'
+        # user_name, password, crypto_api = read_config.export_variables(
+        #     env_location)
 
-        # Instantiate the Crypto Data Class
-        crypto_closing_df = Crypto_Data(
-            crypto_api)
+        # # Instantiate the Crypto Data Class
+        # crypto_closing_df = Crypto_Data(
+        #     crypto_api)
 
-        crypto_df = crypto_closing_df.get_multiple_close_df(tickers)
+        # crypto_df = crypto_closing_df.get_multiple_close_df(tickers)
 
-        # PRODUCES THE EXACT SAME FORMAT FOR BOTH CRYPTO AND STOCK
-        print(ldf_close)
-        print(crypto_df)
+        # # PRODUCES THE EXACT SAME FORMAT FOR BOTH CRYPTO AND STOCK
+        # print(ldf_close)
+        # print(crypto_df)
 
         # ################### OTHER ###################################
 
